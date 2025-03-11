@@ -1,12 +1,16 @@
 [project]
-name = "process-template"
+name = "angivelse-af-borgers-primaere-organisationer"
 version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
     "automation-server-client",
+    "kmd-nexus-client",
+    "openpyxl>=3.1.5",
+    "pandas>=2.2.3",
 ]
 
 [tool.uv.sources]
 automation-server-client = { git = "https://github.com/odense-rpa/automation-server-client.git" }
+kmd-nexus-client = { git = "https://github.com/odense-rpa/nexus-client.git" }
