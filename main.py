@@ -70,6 +70,9 @@ async def process_workqueue(workqueue: Workqueue):
                 organizations_client.update_citizen_organization_relationship(organization_relation=updateable_organization,endDate=None, primary_organization=True)
                 # Do some afregning eventually
 
+                # Log
+                logger.info(f"Opdateret organisation som primær: {data}")
+
                 pass
             except WorkItemError as e:
                 # A WorkItemError represents a soft error that indicates the item should be passed to manual processing or a business logic fault
