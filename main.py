@@ -71,7 +71,7 @@ async def process_workqueue(workqueue: Workqueue):
                 # Do some afregning eventually
 
                 # Log
-                logger.info(f"Opdateret organisation som primær: {data}")
+                logger.info(f"Opdateret organisation som primær: {data["organization"]}")
 
                 pass
             except WorkItemError as e:
