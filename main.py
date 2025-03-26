@@ -2,6 +2,7 @@ import asyncio
 import logging
 import sys
 
+from odk_tools.tracking import Tracker
 from automation_server_client import AutomationServer, Workqueue, WorkItemError, Credential
 from kmd_nexus_client import NexusClient, CitizensClient, OrganizationsClient
 import pandas as pd
@@ -69,6 +70,7 @@ async def process_workqueue(workqueue: Workqueue):
                 # Process the item here
                 organizations_client.update_citizen_organization_relationship(organization_relation=updateable_organization,endDate=None, primary_organization=True)
                 # Do some afregning eventually
+                database_client.track_task("Angivelse af borgers primære organisation")
 
                 # Log
                 logger.info(f"Opdateret organisation som primær: {data["organization"]}")
@@ -87,6 +89,7 @@ if __name__ == "__main__":
 
     # Initialize external systems for automation here..
     credential = Credential.get_credential("KMD Nexus - produktion")
+    tracking_credential = Credential.get_credential("Odense SQL Server")
 
     nexus_client = NexusClient(
         instance= credential.get_data_as_dict()["instance"],
@@ -95,6 +98,11 @@ if __name__ == "__main__":
     )
     citizens_client = CitizensClient(nexus_client=nexus_client)
     organizations_client = OrganizationsClient(nexus_client=nexus_client)
+
+    database_client = Tracker(
+        username=tracking_credential.username, 
+        password=tracking_credential.password
+    )
 
     # Queue management
     if "--queue" in sys.argv:
