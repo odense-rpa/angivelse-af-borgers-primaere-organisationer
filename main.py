@@ -12,6 +12,7 @@ from automation_server_client import (
     Credential,
 )
 from kmd_nexus_client import NexusClient, CitizensClient, OrganizationsClient
+
 # temp fix since no Q:\
 from organizations import approved_organizations
 
@@ -33,6 +34,9 @@ async def populate_queue(workqueue: Workqueue):
         citizens = organizations_client.get_citizens_by_organization(organization)
 
         for citizen in citizens:
+            if citizen["patientIdentifier"]["type"] != "cpr":
+                continue
+
             data = {
                 "cpr": citizen["patientIdentifier"]["identifier"],
                 "organization": organization["name"],
@@ -102,8 +106,8 @@ if __name__ == "__main__":
     workqueue = ats.workqueue()
 
     # Path to the file containing the list of approved organizations
-    #file_path_approved_organizations = r"Q:\RPA\Leverancer\Visitering til Lysningen\Liste over organisationer som muligvis skal have besked.xlsx"
-    #approved_organizations_raw = pd.read_excel(file_path_approved_organizations)
+    # file_path_approved_organizations = r"Q:\RPA\Leverancer\Visitering til Lysningen\Liste over organisationer som muligvis skal have besked.xlsx"
+    # approved_organizations_raw = pd.read_excel(file_path_approved_organizations)
     # Convert only the first column to a dictionary
     # approved_organizations = [
     #     value for (_, value) in approved_organizations_raw.iloc[:, 0].to_dict().items()
