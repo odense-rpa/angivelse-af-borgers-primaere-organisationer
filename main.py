@@ -55,12 +55,12 @@ async def process_workqueue(workqueue: Workqueue):
     for item in workqueue:
         with item:
             data = item.get_data_as_dict()
-            citizen = citizens_client.get_citizen(data["cpr"])
-            citizens_orgs = organizations_client.get_organizations_by_citizen(
-                citizen=citizen
-            )
-
             try:
+                citizen = citizens_client.get_citizen(data["cpr"])
+                citizens_orgs = organizations_client.get_organizations_by_citizen(
+                    citizen=citizen
+                )
+
                 # Find the organization that should be updated
                 updateable_organization = next(
                     (
@@ -94,8 +94,10 @@ async def process_workqueue(workqueue: Workqueue):
                     f"Opdateret organisation som primær: {data['organization']}"
                 )
 
+            except ValueError as e:
+                logger.error(f"Error processing item: {data}. Error: {e}")
+                item.fail(str(e))
             except WorkItemError as e:
-                # A WorkItemError represents a soft error that indicates the item should be passed to manual processing or a business logic fault
                 logger.error(f"Error processing item: {data}. Error: {e}")
                 item.fail(str(e))
 
