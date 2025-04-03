@@ -16,9 +16,9 @@ dependencies = [
 
 [package.metadata]
 requires-dist = [
-    { name = "automation-server-client", git = "https://github.com/odense-rpa/automation-server-client.git" },
-    { name = "kmd-nexus-client", git = "https://github.com/odense-rpa/nexus-client.git" },
-    { name = "odk-tools", git = "https://github.com/odense-rpa/odk-tools.git" },
+    { name = "automation-server-client", git = "https://github.com/odense-rpa/automation-server-client.git?branch=main" },
+    { name = "kmd-nexus-client", git = "https://github.com/odense-rpa/nexus-client.git?branch=main" },
+    { name = "odk-tools", git = "https://github.com/odense-rpa/odk-tools.git?branch=master" },
     { name = "openpyxl", specifier = ">=3.1.5" },
     { name = "pandas", specifier = ">=2.2.3" },
 ]
@@ -60,7 +60,7 @@ wheels = [
 [[package]]
 name = "automation-server-client"
 version = "0.1.0"
-source = { git = "https://github.com/odense-rpa/automation-server-client.git#d3bab10b3ddb068e770a8311dcdc9e1b71476c83" }
+source = { git = "https://github.com/odense-rpa/automation-server-client.git?branch=main#9ab1c5873e0c9e36b41ecfff9f357c889a9545f2" }
 dependencies = [
     { name = "python-dotenv" },
     { name = "requests" },
@@ -221,7 +221,7 @@ wheels = [
 [[package]]
 name = "kmd-nexus-client"
 version = "0.1.0"
-source = { git = "https://github.com/odense-rpa/nexus-client.git#1e63e7f5d889a33330dce5460478060faced3cc5" }
+source = { git = "https://github.com/odense-rpa/nexus-client.git?branch=main#e4fb6d11ce04994c32f9cf81e14e31353c43be7e" }
 dependencies = [
     { name = "authlib" },
     { name = "httpx" },
@@ -283,7 +283,7 @@ wheels = [
 [[package]]
 name = "odk-tools"
 version = "0.1.0"
-source = { git = "https://github.com/odense-rpa/odk-tools.git#b8b59c0036d97af4b65c69abffa319d2aeaefd51" }
+source = { git = "https://github.com/odense-rpa/odk-tools.git?branch=master#b8b59c0036d97af4b65c69abffa319d2aeaefd51" }
 dependencies = [
     { name = "pymssql" },
     { name = "zeep" },

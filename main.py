@@ -33,6 +33,8 @@ async def populate_queue(workqueue: Workqueue):
 
         citizens = organizations_client.get_citizens_by_organization(organization)
 
+        logger.info(f"Adding {len(citizens)} citizens from {organization['name']}")
+
         for citizen in citizens:
             if citizen["patientIdentifier"]["type"] != "cpr":
                 continue
