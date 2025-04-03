@@ -93,7 +93,7 @@ async def process_workqueue(workqueue: Workqueue):
 
                 # Log
                 logger.info(
-                    f"Opdateret organisation som primær: {data['organization']}"
+                    f"Sat {data['organization']} som primær organisation på {data["cpr"]}"
                 )
 
             except ValueError as e:
