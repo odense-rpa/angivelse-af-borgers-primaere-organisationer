@@ -39,6 +39,9 @@ async def populate_queue(workqueue: Workqueue):
             if citizen["patientIdentifier"]["type"] != "cpr":
                 continue
 
+            if citizen["patientIdentifier"]["identifier"] in ["221354-1242", "010858-9995", "131313-1313", "251248-9996", "050505-9996"]:
+                continue
+
             data = {
                 "cpr": citizen["patientIdentifier"]["identifier"],
                 "organization": organization["name"],
