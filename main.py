@@ -2,7 +2,7 @@ import asyncio
 import logging
 import sys
 
-import pandas as pd
+#import pandas as pd
 
 from odk_tools.tracking import Tracker
 from automation_server_client import (
