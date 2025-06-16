@@ -59,7 +59,7 @@ async def process_workqueue(workqueue: Workqueue):
 
     for item in workqueue:
         with item:
-            data = item.get_data_as_dict()
+            data = item.data
             try:
                 citizen = citizens_client.get_citizen(data["cpr"])
                 citizens_orgs = organizations_client.get_organizations_by_citizen(
@@ -125,7 +125,7 @@ if __name__ == "__main__":
     tracking_credential = Credential.get_credential("Odense SQL Server")
 
     nexus_client = NexusClient(
-        instance=credential.get_data_as_dict()["instance"],
+        instance=credential.data["instance"],
         client_secret=credential.password,
         client_id=credential.username,
     )
