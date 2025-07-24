@@ -1,4 +1,4 @@
-approved_organizations = [
+godkendte_organisationer = [
     "Fruens Bøgegruppen",
     "Kalørgruppen",
     "Lindvedgruppen",

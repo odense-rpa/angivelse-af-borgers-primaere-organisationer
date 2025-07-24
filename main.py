@@ -11,40 +11,38 @@ from automation_server_client import (
     WorkItemError,
     Credential,
 )
-from kmd_nexus_client import NexusClient, CitizensClient, OrganizationsClient
+from kmd_nexus_client import NexusClientManager
 
 # temp fix since no Q:\
-from organizations import approved_organizations
+from organizations import godkendte_organisationer
 
-nexus_client = None
-citizens_client = None
-organizations_client = None
+nexus_client_manager = None
 tracking_client = None
 
 
 async def populate_queue(workqueue: Workqueue):
     logger = logging.getLogger(__name__)
+    
+    organisationer = nexus_client_manager.organisationer.hent_organisationer()
 
-    all_organizations = organizations_client.get_organizations()
-
-    for organization in all_organizations:
-        if organization["name"] not in approved_organizations:
+    for organisation in organisationer:
+        if organisation["name"] not in godkendte_organisationer:
             continue
 
-        citizens = organizations_client.get_citizens_by_organization(organization)
+        borgere = nexus_client_manager.organisationer.hent_borgere_for_organisation(organisation)
 
-        logger.info(f"Adding {len(citizens)} citizens from {organization['name']}")
+        logger.info(f"Adding {len(borgere)} citizens from {organisation['name']}")
 
-        for citizen in citizens:
-            if citizen["patientIdentifier"]["type"] != "cpr":
+        for borger in borgere:
+            if borger["patientIdentifier"]["type"] != "cpr":
                 continue
 
-            if citizen["patientIdentifier"]["identifier"] in ["221354-1242", "010858-9995", "131313-1313", "251248-9996", "050505-9996"]:
+            if borger["patientIdentifier"]["identifier"] in ["221354-1242", "010858-9995", "131313-1313", "251248-9996", "050505-9996"]:
                 continue
 
             data = {
-                "cpr": citizen["patientIdentifier"]["identifier"],
-                "organization": organization["name"],
+                "cpr": borger["patientIdentifier"]["identifier"],
+                "organization": organisation["name"],
             }
 
             try:
@@ -61,32 +59,32 @@ async def process_workqueue(workqueue: Workqueue):
         with item:
             data = item.data
             try:
-                citizen = citizens_client.get_citizen(data["cpr"])
-                citizens_orgs = organizations_client.get_organizations_by_citizen(
-                    citizen=citizen
+                borger = nexus_client_manager.borgere.hent_borger(data["cpr"])
+                borger_organisationer = nexus_client_manager.organisationer.hent_organisationer_for_borger(
+                    citizen=borger
                 )
 
                 # Find the organization that should be updated
-                updateable_organization = next(
+                organisation_til_opdatering = next(
                     (
                         item
-                        for item in citizens_orgs
+                        for item in borger_organisationer
                         if item["organization"]["name"] == data["organization"]
                     ),
                     None,
                 )
 
                 # Citizen no longer has the organization
-                if not updateable_organization:
+                if not organisation_til_opdatering:
                     continue
 
                 # If the organization is already the primary organization, skip it
-                if updateable_organization["primaryOrganization"]:
+                if organisation_til_opdatering["primaryOrganization"]:
                     continue
 
                 # Process the item here
-                organizations_client.update_citizen_organization_relationship(
-                    organization_relation=updateable_organization,
+                nexus_client_manager.organisationer.opdater_borger_organisations_relation(
+                    organization_relation=organisation_til_opdatering,
                     endDate=None,
                     primary_organization=True,
                 )
@@ -124,13 +122,11 @@ if __name__ == "__main__":
     credential = Credential.get_credential("KMD Nexus - produktion")
     tracking_credential = Credential.get_credential("Odense SQL Server")
 
-    nexus_client = NexusClient(
+    nexus_client_manager = NexusClientManager(
         instance=credential.data["instance"],
         client_secret=credential.password,
         client_id=credential.username,
-    )
-    citizens_client = CitizensClient(nexus_client=nexus_client)
-    organizations_client = OrganizationsClient(nexus_client=nexus_client)
+    )    
 
     tracking_client = Tracker(
         username=tracking_credential.username, password=tracking_credential.password
