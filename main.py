@@ -61,7 +61,7 @@ async def process_workqueue(workqueue: Workqueue):
             try:
                 borger = nexus_client_manager.borgere.hent_borger(data["cpr"])
                 borger_organisationer = nexus_client_manager.organisationer.hent_organisationer_for_borger(
-                    citizen=borger
+                    borger
                 )
 
                 # Find the organization that should be updated
