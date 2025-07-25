@@ -86,7 +86,7 @@ async def process_workqueue(workqueue: Workqueue):
                 nexus_client_manager.organisationer.opdater_borger_organisations_relation(
                     relation=organisation_til_opdatering,
                     slut_dato=None,
-                    primary_organization=True,
+                    primær_organisation=True,
                 )
 
                 # Track the item
