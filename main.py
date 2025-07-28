@@ -16,22 +16,21 @@ from kmd_nexus_client import NexusClientManager
 # temp fix since no Q:\
 from organizations import godkendte_organisationer
 
-nexus_client_manager = None
-tracking_client = None
-
+nexus: NexusClientManager
+tracking_client: Tracker
 
 async def populate_queue(workqueue: Workqueue):
     logger = logging.getLogger(__name__)
     
-    organisationer = nexus_client_manager.organisationer.hent_organisationer()
+    organisationer = nexus.organisationer.hent_organisationer()
 
     for organisation in organisationer:
         if organisation["name"] not in godkendte_organisationer:
             continue
 
-        borgere = nexus_client_manager.organisationer.hent_borgere_for_organisation(organisation)
+        borgere = nexus.organisationer.hent_borgere_for_organisation(organisation)
 
-        logger.info(f"Adding {len(borgere)} citizens from {organisation['name']}")
+        logger.info(f"Tilføjer {len(borgere)} borgere fra {organisation['name']}")
 
         for borger in borgere:
             if borger["patientIdentifier"]["type"] != "cpr":
@@ -45,11 +44,10 @@ async def populate_queue(workqueue: Workqueue):
                 "organization": organisation["name"],
             }
 
-            try:
-                # Add the item to the workqueue
+            try:                
                 workqueue.add_item(data, data["cpr"])
             except Exception as e:
-                logger.error(f"Error adding item to workqueue: {data}. Error: {e}")
+                logger.error(f"Fejl ved tilføjelse af item til kø: {data}. Fejlbesked: {e}")
 
 
 async def process_workqueue(workqueue: Workqueue):
@@ -59,8 +57,12 @@ async def process_workqueue(workqueue: Workqueue):
         with item:
             data = item.data
             try:
-                borger = nexus_client_manager.borgere.hent_borger(data["cpr"])
-                borger_organisationer = nexus_client_manager.organisationer.hent_organisationer_for_borger(
+                borger = nexus.borgere.hent_borger(data["cpr"])
+
+                if not borger:
+                    raise ValueError(f"Borger med CPR {data['cpr']} ikke fundet.")
+
+                borger_organisationer = nexus.organisationer.hent_organisationer_for_borger(
                     borger
                 )
 
@@ -83,7 +85,7 @@ async def process_workqueue(workqueue: Workqueue):
                     continue
 
                 # Process the item here
-                nexus_client_manager.organisationer.opdater_borger_organisations_relation(
+                nexus.organisationer.opdater_borger_organisations_relation(
                     relation=organisation_til_opdatering,
                     slut_dato=None,
                     primær_organisation=True,
@@ -97,17 +99,16 @@ async def process_workqueue(workqueue: Workqueue):
                     f"Sat {data['organization']} som primær organisation på {data["cpr"]}"
                 )
 
-            except ValueError as e:
-                logger.error(f"Error processing item: {data}. Error: {e}")
+            except (ValueError, WorkItemError) as e:
+                logger.error(f"Fejl ved behandling af item: {data}. Fejl: {e}")
                 item.fail(str(e))
-            except WorkItemError as e:
-                logger.error(f"Error processing item: {data}. Error: {e}")
-                item.fail(str(e))
-
 
 if __name__ == "__main__":
-    ats = AutomationServer.from_environment()
+    logging.basicConfig(
+        level=logging.INFO
+    )
 
+    ats = AutomationServer.from_environment()
     workqueue = ats.workqueue()
 
     # Path to the file containing the list of approved organizations
@@ -122,7 +123,7 @@ if __name__ == "__main__":
     credential = Credential.get_credential("KMD Nexus - produktion")
     tracking_credential = Credential.get_credential("Odense SQL Server")
 
-    nexus_client_manager = NexusClientManager(
+    nexus = NexusClientManager(
         instance=credential.data["instance"],
         client_secret=credential.password,
         client_id=credential.username,
