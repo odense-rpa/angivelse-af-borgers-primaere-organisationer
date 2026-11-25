@@ -1,8 +1,7 @@
+import argparse
 import asyncio
 import logging
-import sys
-
-#import pandas as pd
+import os
 
 from odk_tools.tracking import Tracker
 from automation_server_client import (
@@ -13,15 +12,15 @@ from automation_server_client import (
 )
 from kmd_nexus_client import NexusClientManager
 
-# temp fix since no Q:\
-from organizations import godkendte_organisationer
+from process.config import get_godkendte_organisationer, load_godkendte_organisationer
 
 nexus: NexusClientManager
 tracking_client: Tracker
 
 async def populate_queue(workqueue: Workqueue):
     logger = logging.getLogger(__name__)
-    
+
+    godkendte_organisationer = get_godkendte_organisationer()
     organisationer = nexus.organisationer.hent_organisationer()
 
     for organisation in organisationer:
@@ -108,16 +107,30 @@ if __name__ == "__main__":
         level=logging.INFO
     )
 
+    parser = argparse.ArgumentParser(
+        description="Angivelse af borgers primære organisationer"
+    )
+    parser.add_argument(
+        "--excel-file",
+        default="./godkendte_organisationer.xlsx",
+        help="Path to the Excel file containing approved organizations (default: ./godkendte_organisationer.xlsx)",
+    )
+    parser.add_argument(
+        "--queue",
+        action="store_true",
+        help="Populate the workqueue and exit (no processing)",
+    )
+    args = parser.parse_args()
+
+    # Validate Excel file exists
+    if not os.path.isfile(args.excel_file):
+        raise FileNotFoundError(f"Excel file not found: {args.excel_file}")
+
+    # Load approved organizations once on startup
+    load_godkendte_organisationer(args.excel_file)
+
     ats = AutomationServer.from_environment()
     workqueue = ats.workqueue()
-
-    # Path to the file containing the list of approved organizations
-    # file_path_approved_organizations = r"Q:\RPA\Leverancer\Visitering til Lysningen\Liste over organisationer som muligvis skal have besked.xlsx"
-    # approved_organizations_raw = pd.read_excel(file_path_approved_organizations)
-    # Convert only the first column to a dictionary
-    # approved_organizations = [
-    #     value for (_, value) in approved_organizations_raw.iloc[:, 0].to_dict().items()
-    # ]
 
     # Initialize external systems
     credential = Credential.get_credential("KMD Nexus - produktion")
@@ -134,7 +147,7 @@ if __name__ == "__main__":
     )
 
     # Queue management
-    if "--queue" in sys.argv:
+    if args.queue:
         workqueue.clear_workqueue("new")
         asyncio.run(populate_queue(workqueue))
         exit(0)

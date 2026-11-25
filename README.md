@@ -4,7 +4,7 @@ Automatisering der sammenligner en foruddefineret liste over godkendte organisat
 
 ## Hvad gør robotten?
 
-1. **Indlæser godkendte organisationer** fra en foruddefineret liste (`organizations.py`)
+1. **Indlæser godkendte organisationer** fra Excel-filen `godkendte_organisationer.xlsx` (første kolonne, række 1 er overskrift)
 2. **Henter alle borgere** tilknyttet hver godkendt organisation via KMD Nexus
 3. **Filtrerer** borgere uden CPR-baseret identifikator og testpersoner fra
 4. **Opretter arbejdskø** med borgere og deres organisation
@@ -53,6 +53,7 @@ uv run python main.py
 | Argument | Beskrivelse |
 |---|---|
 | `--queue` | Fyld arbejdskøen og afslut (kør ingen behandling) |
+| `--excel-file` | Sti til Excel-filen med godkendte organisationer (standard: `./godkendte_organisationer.xlsx`) |
 
 ## Afhængigheder
 
@@ -61,8 +62,7 @@ uv run python main.py
 | `automation-server-client` | Arbejdskø-håndtering og credential-opslag |
 | `kmd-nexus-client` | Integration med KMD Nexus |
 | `odk-tools` | Aktivitetssporing |
-| `openpyxl` | Læsning af Excel-filer |
-| `pandas` | Databehandling |
+| `openpyxl` | Læsning af Excel-filen med godkendte organisationer |
 
 ## Persondatasikkerhed
 
